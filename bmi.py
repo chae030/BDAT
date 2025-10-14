@@ -1,3 +1,7 @@
+hight = 0.0
+weight = 0.0
+bmi = 0.0
+
 hight = float(input("키(cm) : "))
 weight = float(input("몸무게(kg) : "))
 
