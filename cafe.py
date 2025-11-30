@@ -12,7 +12,7 @@ def get_reuqest_url(strV) :
     # utf-8 형태로 인코딩
     encStr = urllib.parse.quote(strV)
 
-    openURL = "https://openapi.naver.com/v1/search/cafe.json"
+    openURL = "https://openapi.naver.com/v1/search/cafearticle.json"
     mergeURL = openURL + "?start=1&display=100&query=" + encStr
 
     # URL을 통하여 요청 시작
@@ -60,16 +60,14 @@ def getPostData () :
             title = post['title']
             link = post['link']
             description = post['description']
-            bloggername = post['bloggername']
-            bloggerlink = post['bloggerlink']
-            postdate = post['postdate']
+            cafename = post['cafename']
+            cafeurl = post['cafeurl']
             
             jsonResult.append({'title' : title, 
                             'link' : link, 
                             'description' : description,
-                            'bloggername' : bloggername,
-                            'bloggerlink' : bloggerlink,
-                            'postdate' : postdate})
+                            'cafename' : cafename,
+                            'cafeurl' : cafeurl})
 
     return jsonResult
 
