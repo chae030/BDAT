@@ -1,10 +1,15 @@
-import os               # 운영체제
-import sys              # 시스템
-import urllib.request   # url의 정보로 호출
+import os
+import sys
+import urllib.request
 import urllib.parse
 import json
+import re
+from konlpy.tag import Kkma
+from konlpy.utils import pprint
+from collections import Counter
 
-def get_reuqest_url(strV) :
+
+def get_reuqest_url(sp, strV) :
     # developer.naver.com의 client ID, secret code를 작성
     client_id = "Qzmrm7JZT3_I2hr25qOg"
     client_secret = "Wz6nfO_Ioe"
@@ -13,7 +18,7 @@ def get_reuqest_url(strV) :
     encStr = urllib.parse.quote(strV)
 
     openURL = "https://openapi.naver.com/v1/search/news.json"
-    mergeURL = openURL + "?start=1&display=100&query=" + encStr
+    mergeURL = openURL + "?query=" + encStr + + "&display=100" + "&start=" + str(sp)
 
     # URL을 통하여 요청 시작
     request = urllib.request.Request(mergeURL)
@@ -36,9 +41,10 @@ def get_reuqest_url(strV) :
     else :
         print("error code : ", resCode)
 
-def getNaverSearchResults() :
-    strV = input("검색어 입력 : ")
-    retData = get_reuqest_url(strV)
+
+def getNaverSearchResults(sp, strV) :
+    
+    retData = get_reuqest_url(sp, strV)
     
     # URL 연결을 통하여 결과값을 받아오는데
     # 만약 연결이 되지 않았을 경우, 호출한 함수로 결과값이 없음을 알려주고 
@@ -48,8 +54,9 @@ def getNaverSearchResults() :
     else :
         return json.loads(retData)
 
+
 # URL을 통하여 받아온 결과를 정제하기 위한 함수
-def getPostData () :
+def getPostData() :
     
     content = getNaverSearchResults()
     
@@ -89,18 +96,74 @@ def writeFile() :
         oFile.write(retJon)
 
 
-if (__name__ == "__main__" ) :
-    writeFile()
+def getData() : 
     
+    strV = input("검색어 입력 : ") # 검색어
+    sp = 1 # 시작 위치
+    listV = []
 
-# 함수 ( = function, method)
-# 정의 - 중복된 코드를 1회만 적성하여 반복적으로 사용 가능하도록 하기 위함
+    for i in range(1, 11) :
+        if (i >= 2) :
+            sp = (i-1)*100+1
+        resultVal = getNaverSearchResults(sp, strV)
+        
+        listV.append(resultVal)
 
-# 키워드 : def --> 여러줄 함수
-#        lambda --> 한 줄 함수
 
-# 함수는 호출되기 이전에 선언이 되어져 있어야 함
-# 함수명이 중복된다면 가장 마지막의 함수로만 사용 가능
-# 선언 방법
-# def 함수명 (매개변수(parameter)) :
-#     실행 문장
+def funcAna() :
+    
+    wordInfo = dict()
+    
+    baseDir = os.getcwd()
+    # print("변경 전 디렉토리 : ", baseDir)
+    
+    if (baseDir != "/Users/parkchaeyeon/Desktop/GitHub/BigData_Analysis_Technology") :
+        os.chdir("/Users/parkchaeyeon/Desktop/GitHub/BigData_Analysis_Technology")
+        baseDir = os.getcwd()
+    
+    # print("변경 후 디렉터리 : ", baseDir)
+    
+    fileDir = input("파일명 입력 (확장자까지 입력) : ")
+    
+    fileLoc = baseDir + "/" + fileDir
+    
+    fileYN = os.path.isfile(fileLoc)
+    # print("파일 존재 여부 : ", fileYN)
+    
+    if (fileYN == True) :
+        rFile = open(fileLoc, 'r', encoding="utf-8").read()
+        # rFile1 = open(fileLoc, 'r', encoding="utf-8")
+        
+        # print("rFile : ", rFile)
+        # print("rFile1 : ", rFile1)
+        
+        jsonData = json.loads(rFile)
+        # print("jsonData : ", jsonData)
+        
+        desc = ''
+        
+        for i in jsonData : 
+            if 'title'in i.keys() :
+                desc = desc + re.sub(r'[^\w]',  ' ', i['title'])
+            
+        # print("desc : ", desc)
+        
+        ma = Kkma()
+        nounsD = ma.nouns(desc)
+        cnt = Counter(nounsD)
+        
+        # print(cnt)
+        
+        for tag, cnt in cnt.most_common(50) :
+            if (len(tag) >= 2) :
+                wordInfo[tag] = cnt
+                
+        # print(wordInfo)
+        
+    return wordInfo
+
+
+
+
+if (__name__ == "__main__") : # 이 파일에서 직접 실행하면 이 밑 코드 실행 (import 됐을 때는 이 밑 실행 X)
+    getData()
